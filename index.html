@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Existing Project with React</title>
+    <style>
+      body {
+        display: flex;
+        background-color: #f2f2f2;
+      }
+
+      div {
+        width: 48vw;
+        margin: 2%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      ul {
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        list-style-type: none;
+        margin: 3% 0;
+        padding-bottom: 3%;
+        border-bottom: 1px solid #000;
+        word-wrap: break-word;
+        white-space: pre-line;
+      }
+    </style>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel" data-type="module" id="api" defer>
+      const starships = "https://swapi.dev/api/starships";
+      const todos = "https://jsonplaceholder.typicode.com/todos";
+      const { Component, useEffect, useState } = React;
+      const { render } = ReactDOM;
+
+      // Fetches data based on passed URL. Calls createList with URL & renders appropriate React element.
+      const fetchData = async (url, listID) => {
+        const list = await fetch(url)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error: ${res.status}`);
+          } else {
+            return res.json();
+          }
+        })
+        .then(res => {
+          const data = listID === "swapi" ? res.results : res.slice(0, 10);
+
+          if (listID === "typicode") {
+            typiRoot.render(<List data={data} />);
+            createList("typicode", data);
+          } else if (listID === "swapi") {
+            swapiRoot.render(<List data={data} />);
+            createList("swapi", data);
+          }
+        });
+      };
+
+      fetchData(todos, "typicode");
+      fetchData(starships, "swapi");
+
+      // Creates a li for each data object & appends using parent element's id.
+      const createList = (listID, data) => {
+        const parent = document.getElementById(listID);
+
+        data.map(d => {
+          const li = document.createElement("li");
+          let liText = [];
+
+          Object.keys(d).map(key => {
+            const text = document.createTextNode(`${key}: ${d[key]}`);
+            liText.push(text.nodeValue);
+          });
+
+          li.innerText = liText.join("\n");
+          parent.appendChild(li);
+        });
+      };
+
+      "use strict";
+      
+      const List = (props) => {
+        const { data } = props;
+        const [allData, setAllData] = useState([]);
+
+        useEffect(() => {
+          const dataItems = [];
+
+          data && data.map(d => {
+            let currentData = [];
+
+            Object.keys(d).map(key => {
+              const currentText = `${key}: ${d[key]}`;
+              currentData.push(currentText);
+            });
+
+            dataItems.push(currentData);
+          });
+
+          setAllData(dataItems);
+        }, []);
+
+        return (
+          <>
+            {
+              allData && allData.map((tdItem, index) => {
+                const currentData = tdItem.join("\n");
+                  return (
+                    <li key={currentData + index}>{currentData}</li>
+                  );
+              })
+            }
+          </>
+        )
+      };
+
+      const typiRoot = ReactDOM.createRoot(document.getElementById('typicodeReact'));
+      const swapiRoot = ReactDOM.createRoot(document.getElementById('swapiReact'));
+
+    </script>
+  </head>
+  <body>
+    <div>
+      <h1>JSON Placeholder</h1>
+      <ul id="typicode"></ul>
+      <ul id="typicodeReact"></ul>
+    </div>
+    <div>
+      <h1>SWAPI</h1>
+      <ul id="swapi"></ul>
+      <ul id="swapiReact"></ul>
+    </div>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+  </body>
+</html>
